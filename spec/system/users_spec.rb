@@ -56,5 +56,53 @@ RSpec.describe "ユーザーの新規登録", type: :system do
   end
 end
 
+RSpec.describe 'ログイン', type: :system do
+  before do
+    @user = FactoryBot.create(:user)
+  end
+
+  context 'ログインができる時' do
+    it '保存されているユーザーの情報と合致すればログインができる' do
+      # トップページに移動する
+      visit root_path
+      # トップページにログインボタンがあることを確認する
+      expect(page).to have_content('ログイン')
+      # ログインページへ遷移する
+      visit new_user_session_path
+      # 正しいユーザー情報を入力する
+      fill_in 'Email', with: @user.email
+      fill_in 'Password', with: @user.password
+      # ログインボタンを押す
+      find('input[name=commit]').click
+      # トップページへ遷移したことを確認する
+      expect(current_path).to eq '/'
+      # カーソルを合わせるとログアウトボタンが表示されることを確認する
+      expect(
+        find('.user_nav').find('span').hover
+      ).to have_content('ログアウト')
+      # 新規登録ボタン・ログインボタンの表示がないことを確認する
+      expect(page).to have_no_content('新規登録')
+      expect(page).to have_no_content('ログイン')
+    end
+  end
+  context 'ログインができない時' do
+    it '保存されているユーザーの情報と合致しないとログインができない' do
+      # トップページに移動する
+      visit "/"
+      # トップページにログインボタンがあることを確認する
+      expect(page).to have_content('ログイン')
+      # ログインページへ遷移する
+      visit new_user_session_path
+      # ユーザー情報を入力する
+      fill_in 'Email', with: ''
+      fill_in 'Password', with: ''
+      # ログインボタンを押す
+      find('input[name=commit]').click
+      # ログインページへ戻されることを確認する
+      expect(current_path).to eq new_user_session_path
+    end
+  end
+end
+
 # テストコード実行コマンド
 # bundle exec rspec spec/system/users_spec.rb
